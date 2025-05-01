@@ -14,7 +14,6 @@ export class ColumnsService {
             data: {
                 title: dto.title,
                 userId,
-                position: count,
             }
         })
     }
@@ -22,7 +21,6 @@ export class ColumnsService {
     async findAll(userId: string) {
         return this.prisma.column.findMany({
             where: { userId },
-            orderBy: { position: 'asc' }
         })
     }
 

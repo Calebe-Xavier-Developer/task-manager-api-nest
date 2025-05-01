@@ -8,47 +8,71 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  name           String
-  email          String   @unique
-  password       String
-  phone          String
-  is2FAEnabled   Boolean  @default(false)
-  twoFAToken     String?  // opcional
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  password     String
+  phone        String
+  is2FAEnabled Boolean  @default(false)
+  twoFAToken   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  tasks          Task[]
-  columns        Column[]
+  tasks   Task[]
+  columns Column[]
+  board   Board[]
+}
+
+model Board {
+  id        String   @id @default(uuid())
+  name      String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id])
+  boardColumns BoardColumn[]
+}
+
+model BoardColumn {
+  id       String @id @default(uuid())
+  boardId  String
+  columnId String
+  position Int
+
+  board  Board  @relation(fields: [boardId], references: [id])
+  column Column @relation(fields: [columnId], references: [id])
+
+  @@unique([boardId, columnId])
 }
 
 model Column {
   id        String   @id @default(uuid())
   title     String
-  position  Int      @default(0)
   userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id])
-  tasks     Task[]
+  user         User          @relation(fields: [userId], references: [id])
+  tasks        Task[]
+  boardColumns BoardColumn[]
 }
 
 model Task {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   description String?
-  priority    Priority @default(medium)
-  status      Status   @default(todo)
+  priority    Priority  @default(medium)
+  status      Status    @default(todo)
   dueDate     DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  userId      String
-  columnId    String
+  userId   String
+  columnId String
 
-  user        User     @relation(fields: [userId], references: [id])
-  column      Column   @relation(fields: [columnId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+  column Column @relation(fields: [columnId], references: [id])
 }
 
 enum Priority {
