@@ -3,6 +3,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { ReorderTaskDto } from './dto/reorder-task.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('tasks')
@@ -20,12 +21,17 @@ export class TasksController {
     }
 
     @Patch(':id')
-    update(@Req() req, @Param('id') id: string, @Body() dto: UpdateTaskDto){
-        return this.tasksService.update(req.user.userId, id, dto);
+    update(@Param('id') id: string, @Body() dto: UpdateTaskDto){
+        return this.tasksService.update(id, dto);
     }
 
-    @Delete(':id')
-    remove(@Req() req, @Param('id') id: string) {
-        return this.tasksService.remove(req.user.userId, id);
+    @Patch('reorder')
+    reorderTasks(@Body() dto: ReorderTaskDto) {
+        return this.tasksService.reorderTasks(dto);
+    }
+
+    @Delete(':id/column/:columnId')
+    remove(@Param('id') taskId: string, @Param('columnId') columnId: string,) {
+        return this.tasksService.remove(taskId, columnId);
     }
 }

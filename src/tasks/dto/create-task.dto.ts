@@ -1,24 +1,19 @@
-import { Status } from "@prisma/client";
-import { IsDateString, IsEnum, IsOptional, IsString } from "class-validator";
+import { Priority, Status } from "@prisma/client";
+import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
-
-export enum TaskPriority {
-    low = 'low',
-    medium = 'medium',
-    high = 'high',
-}
 
 export class CreateTaskDto {
     @IsString()
+    @IsNotEmpty()
     title: string;
 
     @IsOptional()
     @IsString()
     description?: string;
 
+    @IsEnum(Priority)
     @IsOptional()
-    @IsEnum(TaskPriority)
-    priority?: TaskPriority;
+    priority?: Priority;
 
     @IsOptional()
     @IsEnum(Status)
@@ -29,5 +24,6 @@ export class CreateTaskDto {
     dueDate?: string;
 
     @IsString()
+    @IsNotEmpty()
     columnId: string;
 }
