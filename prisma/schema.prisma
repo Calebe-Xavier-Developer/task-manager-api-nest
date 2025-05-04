@@ -24,7 +24,6 @@ model User {
   password     String
   phone        String
   is2FAEnabled Boolean  @default(false)
-  twoFAToken   String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -32,6 +31,17 @@ model User {
   columns       Column[]
   board         Board[]
   resetTokens   PasswordResetToken[]
+  twoFATokens   TwoFAToken[]
+}
+
+model TwoFAToken {
+  id          String   @id @default(uuid())
+  userId      String
+  code        String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Board {

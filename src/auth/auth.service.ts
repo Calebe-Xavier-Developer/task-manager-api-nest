@@ -7,6 +7,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { Verify2faDto } from './dto/verify-2fa.dto';
 
 @Injectable()
 export class AuthService {
@@ -34,15 +35,43 @@ export class AuthService {
     }
 
     async login(dto: LoginDto) {
-        const user = await this.prisma.user.findUnique({
-            where: { email: dto.email },
-        });
-
+        const user = await this.prisma.user.findUnique({ where: { email: dto.email }});
         if (!user) throw new ForbiddenException('Invalid credentials');
 
         const match = await bcrypt.compare(dto.password, user.password);
-
         if (!match) throw new ForbiddenException('Invalid credentials');
+
+        if (user.is2FAEnabled) {
+            const code = Math.floor(100000 + Math.random() * 900000).toString();
+            const expiresAt = new Date(Date.now() + 300000);
+
+            await this.prisma.twoFAToken.create({
+                data: {
+                    userId: user.id,
+                    code,
+                    expiresAt,
+                },
+            });
+
+            console.log(`🔐 2FA code for ${dto.email}: ${code}`);
+
+            return { message: '2FA code sent to your email (mocked).' };
+        }
+
+        return this.signToken(user.id, user.email);
+    }
+
+    async verify2fa(dto: Verify2faDto) {
+        const user = await this.prisma.user.findUnique({ where: { email: dto.email }});
+        if (!user) throw new NotFoundException('User not found');
+
+        const tokenEntry = await this.prisma.twoFAToken.findFirst({
+            where: { userId: user.id, code: dto.code, expiresAt: { gt: new Date() } },
+        });
+
+        if (!tokenEntry) throw new ForbiddenException('Invalid or expired 2FA code');
+
+        await this.prisma.twoFAToken.delete({ where: { id: tokenEntry.id } });
 
         return this.signToken(user.id, user.email);
     }

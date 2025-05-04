@@ -5,6 +5,7 @@ import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { Verify2faDto } from './dto/verify-2fa.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -34,5 +35,10 @@ export class AuthController {
     @Post('reset-password')
     resetPassword(@Body() dto: ResetPasswordDto) {
         return this.authService.resetPassword(dto);
+    }
+
+    @Post('verify-2fa')
+    verify2fa(@Body() dto: Verify2faDto) {
+        return this.authService.verify2fa(dto);
     }
 }
