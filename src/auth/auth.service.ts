@@ -1,10 +1,12 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma } from '@prisma/client';
+import { v4 as uuid } from 'uuid';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -51,5 +53,52 @@ export class AuthService {
 
         return { access_token: token };
     }
+
+    async forgotPassword(dto: ForgotPasswordDto) {
+        const { email } = dto;
+        const user = await this.prisma.user.findUnique({ where: { email } });
+        if (!user) throw new NotFoundException('User not found');
+
+        const token = uuid();
+        const expiresAt = new Date(Date.now() + 3600000);
+
+        await this.prisma.passwordResetToken.create({
+            data: {
+                userId: user.id,
+                token,
+                expiresAt
+            }
+        })
+
+        console.log(`🔐 Password reset token for ${email}: ${token}`);
+
+        return { message: 'Recovery instructions sent to your email (mocked).' };
+    }
+
+    async resetPassword(dto: ResetPasswordDto) {
+        const { token, newPassword } = dto;
+        const resetEntry = await this.prisma.passwordResetToken.findUnique({
+            where: { token },
+            include: { user: true },
+        });
+
+        if (!resetEntry || resetEntry.expiresAt < new Date()) {
+            throw new ForbiddenException('Invalid or expired token');
+        }
+
+        const hashed = await bcrypt.hash(newPassword, 10);
+
+        await this.prisma.user.update({
+            where: { id: resetEntry.userId },
+            data: { password: hashed },
+        });
+
+        await this.prisma.passwordResetToken.delete({
+            where: { token },
+        });
+
+        return { message: 'Password updated successfully' };
+    }
+
 
 }
