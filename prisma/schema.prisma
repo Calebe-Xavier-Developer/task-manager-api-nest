@@ -8,49 +8,45 @@ datasource db {
 }
 
 model PasswordResetToken {
-  id          String    @id @default(uuid())
-  userId      String
-  token       String    @unique
-  expiresAt   DateTime
-  createdAt   DateTime  @default(now())
-
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-  id           String   @id @default(uuid())
+  id           String               @id @default(uuid())
   name         String
-  email        String   @unique
+  email        String               @unique
   password     String
   phone        String
-  is2FAEnabled Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  tasks         Task[]
-  columns       Column[]
-  board         Board[]
-  resetTokens   PasswordResetToken[]
-  twoFATokens   TwoFAToken[]
+  is2FAEnabled Boolean              @default(false)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  board        Board[]
+  columns      Column[]
+  resetTokens  PasswordResetToken[]
+  tasks        Task[]
+  twoFATokens  TwoFAToken[]
 }
 
 model TwoFAToken {
-  id          String   @id @default(uuid())
-  userId      String
-  code        String
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
-
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  userId    String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Board {
-  id        String   @id @default(uuid())
-  name      String
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id           String        @id @default(uuid())
+  name         String
+  userId       String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   user         User          @relation(fields: [userId], references: [id])
   boardColumns BoardColumn[]
 }
@@ -60,48 +56,44 @@ model BoardColumn {
   boardId  String
   columnId String
   position Int
-
-  board  Board  @relation(fields: [boardId], references: [id])
-  column Column @relation(fields: [columnId], references: [id])
+  board    Board  @relation(fields: [boardId], references: [id])
+  column   Column @relation(fields: [columnId], references: [id])
 
   @@unique([boardId, columnId])
 }
 
 model Column {
-  id        String   @id @default(uuid())
-  title     String
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user          User          @relation(fields: [userId], references: [id])
-  boardColumns  BoardColumn[]
-  columnTask    ColumnTask[]    
+  id           String        @id @default(uuid())
+  title        String
+  userId       String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  boardColumns BoardColumn[]
+  user         User          @relation(fields: [userId], references: [id])
+  columnTask   ColumnTask[]
 }
 
 model Task {
-  id          String    @id @default(uuid())
+  id          String       @id @default(uuid())
   title       String
   description String?
-  priority    Priority  @default(medium)
-  status      Status    @default(todo)
+  priority    Priority     @default(medium)
+  status      Status       @default(todo)
   dueDate     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  userId   String
-  user   User   @relation(fields: [userId], references: [id])
-  columnTask    ColumnTask[]  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  userId      String
+  columnTask  ColumnTask[]
+  user        User         @relation(fields: [userId], references: [id])
 }
 
 model ColumnTask {
-  id        String @id @default(uuid())
-  columnId  String
-  taskId    String
-  position  Int
-
-  column    Column  @relation(fields: [columnId], references: [id])
-  task      Task    @relation(fields: [taskId], references: [id])
+  id       String @id @default(uuid())
+  columnId String
+  taskId   String
+  position Int
+  column   Column @relation(fields: [columnId], references: [id])
+  task     Task   @relation(fields: [taskId], references: [id])
 
   @@unique([columnId, taskId])
 }
