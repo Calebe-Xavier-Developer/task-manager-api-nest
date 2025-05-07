@@ -13,7 +13,7 @@ import { Verify2faDto } from './dto/verify-2fa.dto';
 export class AuthService {
     constructor(private prisma: PrismaService, private jwt: JwtService) {}
 
-    async singUp(dto: CreateUserDto) {
+    async signUp(dto: CreateUserDto) {
         const existingUser = await this.prisma.user.findUnique({
             where: { email: dto.email },
         });

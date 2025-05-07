@@ -4,7 +4,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { AuthController } from './auth.controller';
 
 jest.mock('bcrypt', () => ({
   compare: jest.fn(),
@@ -20,14 +19,12 @@ const mockUser = {
 }
 
 describe('AuthService', () => {
-  let controller: AuthController;
   let service: AuthService;
   let prisma: PrismaService;
   let jwt: JwtService;  
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuthController],
       providers: [
         AuthService, 
         JwtService,
@@ -54,7 +51,6 @@ describe('AuthService', () => {
       ],
     }).compile();
 
-    controller = module.get<AuthController>(AuthController);
     service = module.get<AuthService>(AuthService);
     prisma = module.get<PrismaService>(PrismaService);
     jwt = module.get<JwtService>(JwtService);
@@ -66,7 +62,7 @@ describe('AuthService', () => {
     jest.spyOn(prisma.user, 'create').mockResolvedValueOnce({ id: mockUser.id, email: mockUser.email } as any);
     jest.spyOn(jwt, 'signAsync').mockResolvedValueOnce('mocked-token');
   
-    const result = await controller.signUp({
+    const result = await service.signUp({
       email: mockUser.email,
       password: mockUser.password,
       name: mockUser.name,
@@ -74,13 +70,12 @@ describe('AuthService', () => {
     });
   
     expect(result.access_token).toBe('mocked-token');
-    // expect(service.singUp).toHaveBeenCalled();
   });  
 
   it('should throw if email is already in use', async () => {
     jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(mockUser as any);
 
-    await expect(controller.signUp({
+    await expect(service.signUp({
       email: mockUser.email,
       password: mockUser.password,
       name: mockUser.name,
@@ -93,7 +88,7 @@ describe('AuthService', () => {
     (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true);
     jest.spyOn(jwt, 'signAsync').mockResolvedValueOnce('mocked-token');
 
-    const result = await controller.login({
+    const result = await service.login({
       email: mockUser.email,
       password: mockUser.password,
     }) as { access_token: string };
@@ -107,7 +102,7 @@ describe('AuthService', () => {
     (bcrypt.compare as jest.Mock).mockResolvedValueOnce(false);
 
     await expect(
-      controller.login({ email: mockUser.email, password: 'wrong' })).rejects.toThrow(
+      service.login({ email: mockUser.email, password: 'wrong' })).rejects.toThrow(
       ForbiddenException,
     );
   });
@@ -132,7 +127,7 @@ describe('AuthService', () => {
     
     jest.spyOn(jwt, 'signAsync').mockResolvedValueOnce('verified-token');
   
-    const result = await controller.verify2fa({
+    const result = await service.verify2fa({
       email: mockUser.email,
       code: '123456',
     });
@@ -145,7 +140,7 @@ describe('AuthService', () => {
     jest.spyOn(prisma.twoFAToken, 'findFirst').mockResolvedValueOnce(null);
   
     await expect(
-      controller.verify2fa({ email: mockUser.email, code: 'wrong-code' }),
+      service.verify2fa({ email: mockUser.email, code: 'wrong-code' }),
     ).rejects.toThrow(ForbiddenException);
   });
 
@@ -153,7 +148,7 @@ describe('AuthService', () => {
     jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(null);
   
     await expect(
-      controller.verify2fa({ email: 'notfound@email.com', code: '123456' }),
+      service.verify2fa({ email: 'notfound@email.com', code: '123456' }),
     ).rejects.toThrow(NotFoundException);
   });
 
@@ -161,7 +156,7 @@ describe('AuthService', () => {
     jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(mockUser as any);
     jest.spyOn(prisma.passwordResetToken, 'create').mockResolvedValueOnce({} as any);
   
-    const result = await controller.forgotPassword({ email: mockUser.email });
+    const result = await service.forgotPassword({ email: mockUser.email });
   
     expect(result.message).toBe('Recovery instructions sent to your email (mocked).');
   });
@@ -169,7 +164,7 @@ describe('AuthService', () => {
   it('should throw if user does not exist on forgotPassword', async () => {
     jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(null);
   
-    await expect(controller.forgotPassword({ email: mockUser.email }))
+    await expect(service.forgotPassword({ email: mockUser.email }))
       .rejects.toThrow(NotFoundException);
   });
 
@@ -186,7 +181,7 @@ describe('AuthService', () => {
     jest.spyOn(prisma.user, 'update').mockResolvedValueOnce({} as any);
     jest.spyOn(prisma.passwordResetToken, 'delete').mockResolvedValueOnce({} as any);
   
-    const result = await controller.resetPassword({
+    const result = await service.resetPassword({
       token: 'valid-token',
       newPassword: 'new-password',
     });
@@ -197,7 +192,7 @@ describe('AuthService', () => {
   it('should throw if token is invalid or expired', async () => {
     jest.spyOn(prisma.passwordResetToken, 'findUnique').mockResolvedValueOnce(null);
   
-    await expect(controller.resetPassword({
+    await expect(service.resetPassword({
       token: 'invalid-token',
       newPassword: 'new-password',
     })).rejects.toThrow(ForbiddenException);
@@ -212,7 +207,7 @@ describe('AuthService', () => {
     (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true);
     jest.spyOn(prisma.twoFAToken, 'create').mockResolvedValueOnce({} as any);
   
-    const result = await controller.login({
+    const result = await service.login({
       email: mockUser.email,
       password: mockUser.password,
     });
