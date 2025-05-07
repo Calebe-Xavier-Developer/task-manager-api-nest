@@ -12,19 +12,13 @@ export class AuthController {
     constructor(private authService: AuthService) {}
 
     @Post('signup')
-    signup(@Body() dto: CreateUserDto) {
+    signUp(@Body() dto: CreateUserDto) {
         return this.authService.singUp(dto);
     }
 
     @Post('login')
     login(@Body() dto: LoginDto) {
         return this.authService.login(dto);
-    }
-
-    @UseGuards(AuthGuard('jwt'))
-    @Get('me')
-    me(@Req() req) {
-        return req.user;
     }
 
     @Post('forgot-password')
