@@ -8,7 +8,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { Verify2faDto } from './dto/verify-2fa.dto';
 
 const mockAuthService = {
-  singUp: jest.fn(),
+  signUp: jest.fn(),
   login: jest.fn(),
   forgotPassword: jest.fn(),
   resetPassword: jest.fn(),
@@ -32,7 +32,7 @@ describe('AuthController', () => {
     controller = module.get<AuthController>(AuthController);
   });
 
-  it('should call authService.singUp with CreateUserDto', async () => {
+  it('should call authService.signUp with CreateUserDto', async () => {
     const dto: CreateUserDto = {
       email: 'test@example.com',
       password: 'password',
@@ -41,7 +41,7 @@ describe('AuthController', () => {
     };
 
     await controller.signUp(dto);
-    expect(mockAuthService.singUp).toHaveBeenCalledWith(dto);
+    expect(mockAuthService.signUp).toHaveBeenCalledWith(dto);
   });
 
   it('should call authService.login with LoginDto', async () => {
