@@ -109,13 +109,6 @@ src/
 ├── main.ts
 ```
 
-## Commit Pattern
-
-Example:
-```bash
-feat(auth): add unit tests for signup and login
-```
-
 ## License
 
 This project is licensed under the MIT License.
